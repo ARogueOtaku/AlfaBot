@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "cls && nodemon .",
-    "start": "node ."
+    "test": "cls && nodemon ."
   },
   "author": "",
   "license": "ISC",
