@@ -47,7 +47,6 @@ const handler = {
           else {
             dataManager.setUserCurrency(
               message.author.id,
-              message.channel.id,
               parameter.toUpperCase()
             );
             reply = "Your Currency for this Channel is set to: `" + curr + "`";
@@ -73,16 +72,13 @@ const handler = {
         break;
 
       case "my-curr":
-        const userCurrency = dataManager.getUserCurrency(
-          message.author.id,
-          message.channel.id
-        );
+        const userCurrency = dataManager.getUserCurrency(message.author.id);
         if (!userCurrency)
           reply =
-            "You have not set your Currency for this Channel Yet. It will be Defaulted to `USD`.";
+            "You have not set your Currency Yet. It will be Defaulted to `USD`.";
         else
           reply =
-            "Your Current Currency for this Channel is: `" +
+            "Your Current Currency is: `" +
             dataManager.getCurrency(userCurrency) +
             "`";
         break;
@@ -111,8 +107,7 @@ const handler = {
           "help` for a list of available commands.";
         break;
     }
-    if (typeof reply == "string") message.reply(reply);
-    else message.reply({ embed: reply });
+    message.reply(reply);
   },
 };
 

@@ -59,12 +59,12 @@ const manager = {
     return currencyData.currencies[curr.toUpperCase()];
   },
 
-  setUserCurrency: function (userid, channelid, curr) {
-    currencyData.currencyUserMapping[channelid + "|" + userid] = curr;
+  setUserCurrency: function (userid, curr) {
+    currencyData.currencyUserMapping[userid] = curr;
   },
 
-  getUserCurrency: function (userid, channelid) {
-    return currencyData.currencyUserMapping[channelid + "|" + userid];
+  getUserCurrency: function (userid) {
+    return currencyData.currencyUserMapping[cuserid];
   },
 
   getCurrencyList: function () {
@@ -170,7 +170,9 @@ const manager = {
       });
       finalData.fields.push({
         name: "Discount",
-        value: actualData.price_overview.discount_percent + "%" || "N/A",
+        value: actualData.price_overview.discount_percent
+          ? actualData.price_overview.discount_percent + "%"
+          : "N/A",
         inline: true,
       });
       finalData.fields.push({
@@ -190,7 +192,7 @@ const manager = {
         .substring(2),
       inline: true,
     });
-    return finalData;
+    return { embed: finalData };
   },
 
   getApps: function (searchText) {
@@ -222,6 +224,7 @@ const manager = {
     const currency = this.getUserCurrency(userid, channelid)
       ? this.getUserCurrency(userid, channelid)
       : "US";
+    let data;
     try {
       const res = await fetch(
         "https://store.steampowered.com/api/appdetails?cc=" +
@@ -229,11 +232,11 @@ const manager = {
           "&appids=" +
           appid
       );
-      let data = await res.json();
-      return this.formatData(data, appid);
+      data = await res.json();
     } catch (e) {
       return "Could not Communicte with Steam API. Please try Again in a while";
     }
+    return this.formatData(data, appid);
   },
 };
 
