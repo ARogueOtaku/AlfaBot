@@ -5,14 +5,15 @@
   "main": "index.js",
   "scripts": {
     "test": "cls && nodemon .",
-    "start": "node index.js"
+    "start": "node ."
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "discord.js": "^12.2.0",
-    "node-fetch": "^2.6.0",
-    "dotenv": "^8.2.0"
+    "dotenv": "^8.2.0",
+    "htmlparser2": "^4.1.0",
+    "node-fetch": "^2.6.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.4"

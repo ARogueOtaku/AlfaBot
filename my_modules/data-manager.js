@@ -1,10 +1,6 @@
-const fetch = require("node-fetch");
-const Discord = require("discord.js");
-const appData = {
-  apps: [],
-  available: false,
-  updatedOn: "Never",
-};
+const steamHandler = require("./steamApiHandler");
+
+//List of All Supported Currencies by Steam.
 const currencyData = {
   currencies: {
     AE: "United Arab Emirates Dirham",
@@ -51,22 +47,22 @@ const currencyData = {
 };
 
 const manager = {
-  getListAvailability: function () {
-    return appData.available;
-  },
-
+  //Method to fetch Currency Name for a Currency Code.
   getCurrency: function (curr) {
     return currencyData.currencies[curr.toUpperCase()];
   },
 
+  //Method to set the User's current Preferred Currency.
   setUserCurrency: function (userid, curr) {
     currencyData.currencyUserMapping[userid] = curr;
   },
 
+  //Method to fetch the User's current Preferred Currency.
   getUserCurrency: function (userid) {
-    return currencyData.currencyUserMapping[cuserid];
+    return currencyData.currencyUserMapping[userid];
   },
 
+  //Method to fetch all suppoeted Currencies.
   getCurrencyList: function () {
     let list = "",
       i = 1;
@@ -82,39 +78,27 @@ const manager = {
     return list;
   },
 
-  updateList: async function () {
-    console.log("Attempting to Update Applist");
-    appData.available = false;
-    try {
-      const res = await fetch(
-        "https://api.steampowered.com/IStoreService/GetAppList/v1?max_results=50000&key=" +
-          process.env.STEAM_API_KEY
-      );
-      const data = await res.json();
-      appData.apps =
-        data.response.apps instanceof Array ? data.response.apps : appData.apps;
-      appData.updatedOn = new Date();
-    } catch (err) {
-      console.log(err);
-    } finally {
-      appData.available = true;
-      console.log("Applist Updated on:", appData.updatedOn);
-      console.log("Updated App Count:", appData.apps.length);
-    }
-  },
-
+  //Method to format an app's details into a Discord Embed Message.
   formatData: function (data, appid) {
-    if (!data[appid].success) {
+    //Check if Any Data was found for the AppID.
+    if (!data[appid] || !data[appid].success) {
       return (
         "No Data Found for AppID: `" +
         appid +
         "`.Consider Searching for the App Id first using `search <Game Name>`."
       );
     }
+
     let finalData = {},
       actualData = data[appid].data;
-    finalData.color = "white";
+
+    //Set the Color.
+    finalData.color = 16777215;
+
+    //Set the Title.
     finalData.title = actualData.name.length > 0 ? actualData.name : "N/A";
+
+    //Set the Description.
     finalData.description = (actualData.detailed_description.length > 0
       ? actualData.detailed_description.substr(0, 2000) + "..."
       : "N/A"
@@ -124,12 +108,16 @@ const manager = {
       .replace(/(\r\n)+/g, "\n")
       .replace(/\t+/g, " ")
       .replace(/\s+/g, " ");
-    finalData.author = { name: "AlfaBot" };
+
+    //Set the Image if Available.
     if (actualData.header_image) {
       finalData.image = { url: actualData.header_image };
     }
+
+    //Set the URL to Steam Store.
     finalData.url = "http://store.steampowered.com/app/" + appid;
 
+    //Set the Footer to the Game's Release Date.
     finalData.footer = {
       text:
         "**Release Date** " +
@@ -140,6 +128,8 @@ const manager = {
           : "N/A"),
     };
     finalData.fields = [];
+
+    //Set the Fields [Devs, Publishers, Metacritic Score, Price Info, Platforms, ]
     finalData.fields.push({
       name: "Developers",
       value: actualData.developers || "N/A",
@@ -195,51 +185,45 @@ const manager = {
     return { embed: finalData };
   },
 
-  getApps: function (searchText) {
-    let appsFound = appData.apps
-      .filter(
-        (app) =>
-          app.name.length <= 100 &&
-          app.name.toLowerCase().includes(searchText.toLowerCase())
-      )
-      .map(
-        (app, index) =>
-          "**" +
-          (index + 1) +
-          "**. " +
-          app.name +
-          " `App ID: " +
-          app.appid +
-          "`"
-      );
-    appsFound = appsFound.join("\n");
+  //Method to Fetch AppIDs for the searched App Name.
+  getApps: async function (searchText, userid) {
+    const currency = this.getUserCurrency(userid)
+      ? this.getUserCurrency(userid)
+      : "US";
+    const appsFound = await steamHandler.getSteamSuggestion(
+      searchText,
+      currency
+    );
     return appsFound.length > 0
-      ? appsFound.length >= 2000
-        ? "Too Many Matches Found. Plese Try Narrowing down yor Search by Entering a few more letters"
-        : "I found these Games:\n" + appsFound
-      : "No Apps Found with Text: " + searchText;
+      ? "Here are the Apps I found:\n" +
+          appsFound
+            .map(
+              (app, i) =>
+                "**" +
+                (i + 1) +
+                ".** " +
+                (app.match_name ? "**" + app.match_name + "**" : "") +
+                (app.match_price ? ", " + app.match_price : "") +
+                (app.appid ? ",`AppID: " + app.appid + "`" : "")
+            )
+            .join("\n")
+      : "No Apps fond with Text: " + searchText;
   },
 
-  getAppData: async function (appid, userid, channelid) {
-    const currency = this.getUserCurrency(userid, channelid)
-      ? this.getUserCurrency(userid, channelid)
+  //Method to Get App details from Steam. This data is passed on to <formatData> to form an Embed.
+  getAppData: async function (appid, userid) {
+    const currency = this.getUserCurrency(userid)
+      ? this.getUserCurrency(userid)
       : "US";
     let data;
     try {
-      const res = await fetch(
-        "https://store.steampowered.com/api/appdetails?cc=" +
-          currency +
-          "&appids=" +
-          appid
-      );
-      data = await res.json();
+      data = await steamHandler.getSteamAppData(appid, currency);
+      return this.formatData(data, appid);
     } catch (e) {
-      return "Could not Communicte with Steam API. Please try Again in a while";
+      console.log(e);
+      return "Steam Did not Send Appropriate Data. Please try Again in a while!";
     }
-    return this.formatData(data, appid);
   },
 };
-
-manager.updateList();
 
 module.exports = manager;
