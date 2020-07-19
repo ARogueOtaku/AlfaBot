@@ -13,7 +13,7 @@ const currencyData = {
     CN: "Chinese Renminbi (yuan)",
     CO: "Colombian Peso",
     CR: "Costa Rican Colón",
-    EU: "European Union Euro",
+    DE: "European Union Euro",
     GB: "United Kingdom Pound",
     HK: "Hong Kong Dollar",
     IL: "Israeli New Shekel",
@@ -202,8 +202,8 @@ const manager = {
                 "**" +
                 (i + 1) +
                 ".** " +
-                (app.match_name ? "**" + app.match_name + "**" : "") +
-                (app.match_price ? ", " + app.match_price : "") +
+                (app.name ? "**" + app.name + "**" : "") +
+                (app.price ? ", " + app.price : "") +
                 (app.appid ? ",`AppID: " + app.appid + "`" : "")
             )
             .join("\n")

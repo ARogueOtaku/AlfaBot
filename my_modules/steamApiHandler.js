@@ -40,6 +40,7 @@ const util = {
     return data;
   },
 
+  //Get Apps aginst a term based on Steam's Store Suggestion.
   getSteamSuggestion: async function (term, currency) {
     const fetchURL =
       "https://store.steampowered.com/search/suggest?term=" +
@@ -60,13 +61,12 @@ const util = {
             ["match_name", "match_price"].includes(n.attribs["class"])
         );
         appdata.forEach((n) => {
-          apps[n.attribs["class"]] = n.children[0]
+          apps[n.attribs["class"].replace(/match_/g, "")] = n.children[0]
             ? n.children[0].data || undefined
             : undefined;
         });
         return apps;
       });
-    console.log(applist);
     return applist;
   },
 };
