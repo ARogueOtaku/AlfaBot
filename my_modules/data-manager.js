@@ -81,7 +81,11 @@ const manager = {
   //Method to format an app's details into a Discord Embed Message.
   formatData: function (data, appid) {
     //Check if Any Data was found for the AppID.
-    if (!data[appid] || !data[appid].success) {
+    if (
+      !data ||
+      (data && !data[appid]) ||
+      (data[appid] && !data[appid].success)
+    ) {
       return (
         "No Data Found for AppID: `" +
         appid +
@@ -90,10 +94,11 @@ const manager = {
     }
 
     let finalData = {},
-      actualData = data[appid].data;
+      actualData = data[appid].data,
+      reviewData = data.reviews;
 
     //Set the Color.
-    finalData.color = 16777215;
+    finalData.color = 16777214;
 
     //Set the Title.
     finalData.title = actualData.name.length > 0 ? actualData.name : "N/A";
@@ -182,6 +187,23 @@ const manager = {
         .substring(2),
       inline: true,
     });
+    if (reviewData) {
+      finalData.fields.push({
+        name: "Review Summary",
+        value: reviewData.review_score_desc,
+        inline: true,
+      });
+      finalData.fields.push({
+        name: "Positive Reviews",
+        value: reviewData.total_positive,
+        inline: true,
+      });
+      finalData.fields.push({
+        name: "Negative Reviews",
+        value: reviewData.total_negative,
+        inline: true,
+      });
+    }
     return { embed: finalData };
   },
 
@@ -218,11 +240,13 @@ const manager = {
     let data;
     try {
       data = await steamHandler.getSteamAppData(appid, currency);
-      return this.formatData(data, appid);
+      let reviews = await steamHandler.getSteamAppReviews(appid);
+      if (reviews.success == 1) data.reviews = reviews.query_summary;
     } catch (e) {
       console.log(e);
-      return "Steam Did not Send Appropriate Data. Please try Again in a while!";
+      return "Steam Did not Send Appropriate Data. Please make sure to enter a correct AppId or try Again in a while!";
     }
+    return this.formatData(data, appid);
   },
 };
 

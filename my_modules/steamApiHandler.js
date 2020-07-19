@@ -40,6 +40,16 @@ const util = {
     return data;
   },
 
+  getSteamAppReviews: async function (appid) {
+    const res = await fetch(
+      "https://store.steampowered.com/appreviews/" +
+        appid +
+        "?json=1&language=all&review_type=all&purchase_type=all&filter=all&num_per_page=0"
+    );
+    const data = await res.json();
+    return data;
+  },
+
   //Get Apps aginst a term based on Steam's Store Suggestion.
   getSteamSuggestion: async function (term, currency) {
     const fetchURL =
