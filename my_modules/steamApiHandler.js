@@ -1,5 +1,5 @@
 const fetch = require("node-fetch");
-const htmlparser = require("htmlparser2");
+const { JSDOM } = require("jsdom");
 
 const util = {
   //Method to Fetch Steam Games List using IStoreService API.
@@ -50,7 +50,7 @@ const util = {
     return data;
   },
 
-  //Get Apps aginst a term based on Steam's Store Suggestion.
+  //Method to Get Apps aginst a term based on Steam's Store Suggestion.
   getSteamSuggestion: async function (term, currency) {
     const fetchURL =
       "https://store.steampowered.com/search/suggest?term=" +
@@ -60,24 +60,41 @@ const util = {
       "&f=games";
     const res = await fetch(fetchURL);
     const html = await res.text();
-    const dom = htmlparser.parseDOM(html);
-    const applist = dom
-      .filter((node) => node.attribs["data-ds-appid"])
-      .map((node) => {
-        let apps = { appid: node.attribs["data-ds-appid"] };
-        let appdata = node.children.filter(
-          (n) =>
-            n.type == "tag" &&
-            ["match_name", "match_price"].includes(n.attribs["class"])
-        );
-        appdata.forEach((n) => {
-          apps[n.attribs["class"].replace(/match_/g, "")] = n.children[0]
-            ? n.children[0].data || undefined
-            : undefined;
-        });
-        return apps;
+    const document = new JSDOM(html).window.document;
+    let rows = document.querySelectorAll("a[data-ds-appid]");
+    let apps = [];
+    rows.forEach((row) => {
+      let name = row.querySelector(".match_name");
+      let price = row.querySelector(".match_price");
+      apps.push({
+        appid: row.getAttribute("data-ds-appid"),
+        name: name ? name.textContent || undefined : undefined,
+        price: price ? price.textContent || undefined : undefined,
       });
-    return applist;
+    });
+    return apps;
+  },
+
+  //Methof to Get the Top 100 Played Games Today
+  getPlayerStats: async function () {
+    const fetchURL =
+      "https://store.steampowered.com/stats/Steam-Game-and-Player-Statistics?l=english";
+    const res = await fetch(fetchURL);
+    const html = await res.text();
+    const document = new JSDOM(html).window.document;
+    let rows = document.querySelectorAll("#detailStats .player_count_row");
+    let playerCountData = [];
+    rows.forEach((row) => {
+      let current = row.querySelector("td:nth-child(1) .currentServers");
+      let peak = row.querySelector("td:nth-child(2) .currentServers");
+      let game = row.querySelector("td:nth-child(4) .gameLink");
+      playerCountData.push({
+        current: current ? current.textContent || undefined : undefined,
+        peak: peak ? peak.textContent || undefined : undefined,
+        game: game ? game.textContent || undefined : undefined,
+      });
+    });
+    return playerCountData;
   },
 };
 
