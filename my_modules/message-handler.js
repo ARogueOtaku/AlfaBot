@@ -96,7 +96,34 @@ const handler = {
           process.env.BOT_PREFIX +
           "details <App Id>` - Look at various App Details like Prices, Critic Score, etc.\n5. `" +
           process.env.BOT_PREFIX +
+          "top <Number>` - See Top n Games currently being played on Steam. Defaults to 10\n6. `" +
+          process.env.BOT_PREFIX +
+          "bottom <Number>` - See Bottom n Games currently being played on Steam. Defaults to 10\n7. `" +
+          process.env.BOT_PREFIX +
           "help` - Bring up this menu again.";
+        break;
+
+      case "top":
+        if (parameter.length == 0)
+          reply = await dataManager.getGameStats("top");
+        else if (isNaN(parseInt(parameter)))
+          reply =
+            "Please provide a number. Usage:`" +
+            process.env.BOT_PREFIX +
+            "top <number>`";
+        else reply = await dataManager.getGameStats("top", parseInt(parameter));
+        break;
+
+      case "bottom":
+        if (parameter.length == 0)
+          reply = await dataManager.getGameStats("bottom");
+        else if (isNaN(parseInt(parameter)))
+          reply =
+            "Please provide a number. Usage`" +
+            process.env.BOT_PREFIX +
+            "bottom <number>`";
+        else
+          reply = await dataManager.getGameStats("bottom", parseInt(parameter));
         break;
 
       //Default case when invalid Command.

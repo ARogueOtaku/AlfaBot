@@ -229,7 +229,7 @@ const manager = {
                 (app.appid ? ",`AppID: " + app.appid + "`" : "")
             )
             .join("\n")
-      : "No Apps fond with Text: " + searchText;
+      : "No Apps found with Text: " + searchText;
   },
 
   //Method to Get App details from Steam. This data is passed on to <formatData> to form an Embed.
@@ -247,6 +247,48 @@ const manager = {
       return "Steam Did not Send Appropriate Data. Please make sure to enter a correct AppId or try Again in a while!";
     }
     return this.formatData(data, appid);
+  },
+
+  getGameStats: async function (type = "top", num = 10) {
+    if (num > 50) return "Sorry I can only show `50` games at a time!";
+    let top100;
+    try {
+      top100 = await steamHandler.getPlayerStats();
+    } catch (e) {
+      return "Error Communicating with Steam. Please Try Again in a while!";
+    }
+    let statsData = {
+      color: 16777214,
+      title: "Steam Player Statistics",
+      description:
+        "Here are the " + type + " " + num + " games being played right now!",
+      url:
+        "https://store.steampowered.com/stats/Steam-Game-and-Player-Statistics?l=english",
+      fields: [
+        {
+          name: "Game",
+          value: top100
+            .slice(type == "top" ? 0 : 100 - num, type == "top" ? num : 100)
+            .map((data) => data.game),
+          inline: true,
+        },
+        {
+          name: "Current Players",
+          value: top100
+            .slice(type == "top" ? 0 : 100 - num, type == "top" ? num : 100)
+            .map((data) => data.current),
+          inline: true,
+        },
+        {
+          name: "Peak Today",
+          value: top100
+            .slice(type == "top" ? 0 : 100 - num, type == "top" ? num : 100)
+            .map((data) => data.peak),
+          inline: true,
+        },
+      ],
+    };
+    return { embed: statsData };
   },
 };
 
