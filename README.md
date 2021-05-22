@@ -1,3 +1,4 @@
+
 ### Hi I am AlfaBot. I serve you Game Data fresh from Steam.
 
 ##### I like to work with IDs. What is an ID you ask? An ID is basically a unique idetification number that steam assigns each of it's games/players.
@@ -15,3 +16,6 @@
 #### Feel free to [Add] me to your Discord Server.
 
 [Add]: https://discord.com/oauth2/authorize?client_id=728595907943333948&scope=bot&permissions=3072
+
+---
+**NOTE**: This Bot is No Longer Actively Maintained. *You can still Add it to your Server and use it, but Currency Preferrences will not be saved!*
