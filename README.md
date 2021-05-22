@@ -11,3 +11,7 @@
 |5.  `~details [appid]` - See various Info for a particular game along with a link to its store page.
 |6.  `~top [number]` - See the Top n games being Played in Steam. Defaults to 10. Max is 50.
 |7.  `~bottom [number]` - See the Bottom n games being Played in Steam. Defaults to 10. Max is 50.
+
+#### Feel free to [Add] me to your Discord Server.
+
+[Add]: https://discord.com/oauth2/authorize?client_id=728595907943333948&scope=bot&permissions=3072
